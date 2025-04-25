@@ -1,0 +1,12 @@
+[[test]]
+
+#comment
+
+value = "bonjour" #abc
+
+red = #FF2400
+
+[[test2]]
+
+Human.head = robot
+
