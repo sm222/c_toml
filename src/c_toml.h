@@ -13,21 +13,68 @@
 # define FILE_LINE_SEP '\n'
 #endif
 
-# define VALID_SPACE "\t "
+# define VALID_SPACE     "\t "
 # define VALID_NEXT_LINE '\r'
-# define COMMENT     '#'
+# define COMMENT         '#'
+
+# define TABLE_SIMBOLE   "[]"
+# define TABLE_OPEN      0
+# define TABLE_CLOSE     1
+
+# define FILE_EXTENSION  ".toml"
+
+# define MAX_FILE_SIZE 10000
+# define MAX_VARIABLE  4000
 
 static const char* const errorList[] = {
   "none",
   NULL
 };
 
-typedef struct c_str {
+enum e_Types {
+  Invalid = -1  ,
+  String        ,
+  Integer       ,
+  Float         ,
+  Boolean       ,
+  OffesetTime   ,
+  LocalDateTime ,
+  LocalDate     ,
+  LocalTime     ,
+};
+
+enum e_Forms {
+  None  = -1 ,
+  Variable   ,
+  Array      ,
+  Table      ,
+  InlineTable,
+  ArrayTable ,
+};
+
+typedef struct C_str {
   size_t len;
   size_t head;
   char*  line;
   bool   lineAlloc;
-} c_str;
+} C_str;
+
+typedef union u_Types {
+  void*         Ptr;
+  char*         Str;
+  int           Integer;
+  float         Float;
+  unsigned int  Bool;
+} u_Types;
+
+struct Variable {
+  int      type;
+  int      form; // array, table
+  size_t   len;  // if array else alway 1
+  size_t   line; // line from raw data
+  u_Types* data;
+  char*    name;
+};
 
 // https://toml.io/en/v1.0.0
 
@@ -42,7 +89,8 @@ typedef struct tomlFile {
   size_t              headByte; // head + byte (rawData[head][headbyte])
   // - - - - - - - - - - - - -
   int                 error;
-}  tomlFile;
+  struct Variable     variable;
+} tomlFile;
 
 tomlFile   *toml_init(const char* filePath);
 int         toml_end(tomlFile* file);
@@ -50,8 +98,15 @@ int         toml_end(tomlFile* file);
 //        -- --  --  --  --  --  --  --
 
 void        toml_info(const tomlFile* file);
+int         toml_zero_read(tomlFile* file);
 
 //
 const char* toml_readline(tomlFile* file, ssize_t* size);
+//
+
+bool        toml_jump_to_line(tomlFile* file, const size_t line);
+bool        toml_jump_to_table(tomlFile* file, const char* table);
+
+int         toml_is_file_valid(tomlFile* file);
 
 #endif

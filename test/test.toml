@@ -1,12 +1,44 @@
-[[test]]
-
-#comment
-
-value = "bonjour" #abc
-
-red = #FF2400
+[test]
 
 [[test2]]
+#  comment
+
+    value = "bonjour" #abc
+
+  red = 0xFF2400
+
+. = 6
+
+value = 
+
+
+value =
+
+() = 2
+
+aaa = #test
+
+c = 1
+
+    =
+'
+++ = +
+
+[ [test3] ]
 
 Human.head = robot
 
+[][[test4]]
+
+[[[test5]]]
+
+[test6]]
+
+[[test7]
+
+test8]
+
+[test9
+
+
+[test9 10
