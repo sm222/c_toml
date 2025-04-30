@@ -1,36 +1,29 @@
 #ifndef  TOML_H
 # define TOML_H
 
+# ifndef  VERSION
+#  define VERSION
+#  define VERSION_MAJOR 0
+#  define VERSION_MINOR 1
+#  define VERSION_PATCH 0
+# endif
+
+// https://toml.io/en/v1.0.0
+
+
 # include <stdio.h>
 # include <unistd.h>
 # include <stdbool.h>
 
-#ifndef FILE_SEP
-# define FILE_SEP '/'
-#endif
 
-#ifndef FILE_LINE_SEP
-# define FILE_LINE_SEP '\n'
-#endif
-
-# define VALID_SPACE     "\t "
-# define VALID_NEXT_LINE '\r'
-# define COMMENT         '#'
-
-# define TABLE_SIMBOLE   "[]"
-# define TABLE_OPEN      0
-# define TABLE_CLOSE     1
-
-# define FILE_EXTENSION  ".toml"
-
-# define MAX_FILE_SIZE 10000
-# define MAX_VARIABLE  4000
 
 static const char* const errorList[] = {
   "none",
   NULL
 };
 
+
+/// @brief use for variable find in toml file
 enum e_Types {
   Invalid = -1  ,
   String        ,
@@ -43,6 +36,22 @@ enum e_Types {
   LocalTime     ,
 };
 
+
+static const char* const KeyValueTypes[] = {
+  "Invalid"       ,
+  "String"        ,
+  "Integer"       ,
+  "Float"         ,
+  "Boolean"       ,
+  "OffesetTime"   ,
+  "LocalDateTime" ,
+  "LocalDate"     ,
+  "LocalTime"     ,
+  NULL
+};
+
+# define VARIBLE(x)    KeyValueTypes[x]
+
 enum e_Forms {
   None  = -1 ,
   Variable   ,
@@ -52,12 +61,36 @@ enum e_Forms {
   ArrayTable ,
 };
 
+static const char* const FormatTypes[] = {
+  "None",
+  "Variable",
+  "Array",
+  "Table",
+  "InlineTable",
+  "ArrayTAble",
+  NULL
+};
+
+# define FORMAT(x)   FormatTypes[x + 1]
+
 typedef struct C_str {
   size_t len;
   size_t head;
   char*  line;
   bool   lineAlloc;
 } C_str;
+
+/// @brief use for union
+static const char* const VariableTypes[] = {
+  "ptr",
+  "Str",
+  "Integer",
+  "Float",
+  "Bool",
+  NULL
+};
+
+# define VARIABLE(x)     VariableTypes[x]
 
 typedef union u_Types {
   void*         Ptr;
@@ -76,7 +109,6 @@ struct Variable {
   char*    name;
 };
 
-// https://toml.io/en/v1.0.0
 
 typedef struct tomlFile {
   const char* const*  rawData;
@@ -89,8 +121,9 @@ typedef struct tomlFile {
   size_t              headByte; // head + byte (rawData[head][headbyte])
   // - - - - - - - - - - - - -
   int                 error;
-  struct Variable     variable;
 } tomlFile;
+
+const char* const toml_version(void);
 
 tomlFile   *toml_init(const char* filePath);
 int         toml_end(tomlFile* file);
@@ -106,6 +139,7 @@ const char* toml_readline(tomlFile* file, ssize_t* size);
 
 bool        toml_jump_to_line(tomlFile* file, const size_t line);
 bool        toml_jump_to_table(tomlFile* file, const char* table);
+bool        toml_jump_to_key(  tomlFile* file, const char* key);
 
 int         toml_is_file_valid(tomlFile* file);
 

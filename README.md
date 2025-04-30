@@ -5,7 +5,7 @@ base on the [TOML](https://github.com/toml-lang/toml) language
 
 work in progress
 
-example to use it
+example how to use it
 ```c
 #include "src/c_toml.h"
 

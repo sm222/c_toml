@@ -154,13 +154,15 @@ char**  ft_split(char const* s, char c) {
   char** new = NULL;
   size_t  i = 0;
   size_t  index = 0;
+  int nbWords = 0;
 
   if (!s)
     return (NULL);
-  new = calloc(nb_word(s, c) + 1, sizeof(char *));
+  nbWords = nb_word(s, c);
+  new = calloc(nbWords + 1, sizeof(char *));
   if (!new)
     return (NULL);
-  while (nb_word(s + i, c)) {
+  while (nbWords--) {
     while (s[i] && s[i] == c)
       i++;
     new[index] = ft_strdup_c(s + i, c);

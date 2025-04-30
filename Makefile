@@ -35,5 +35,6 @@ fclean: clean
 	$(RM) $(NAME) $(TEST)
 	@make -C src fclean
 
-
 re: fclean all
+
+rerun: re run

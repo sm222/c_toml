@@ -1,5 +1,6 @@
 
 #include "c_toml.h"
+#include "toml_utils.h"
 #include <stdlib.h>
 #include <fcntl.h>
 #include <string.h>
@@ -9,21 +10,16 @@
 #include "gnl.h"
 
 
+const char* const toml_version(void) {
+  static char s[31];
+  #ifdef VERSION
+  snprintf(s, 30, "c_toml version:%d.%d.%d", VERSION_MAJOR, VERSION_MINOR, VERSION_PATCH);
+  #else
+  snprintf(s, 20, "c_toml version: UNDEFINE");
+  #endif
+  return s;
+}
 
-struct tomlFileEdit {
-  char**          rawData;
-  size_t          fileSize; // byte size
-  size_t          totalLine;
-  char*           fileName; // file name with out path
-  char*           filePath; // file path;
-  // - - - - - - - - - -
-  size_t          head;     // reading head (line)
-  size_t          headByte; // head + byte (rawData[head][headbyte])
-  // - - - - - - - - - - - - -
-  int             error;
-  struct Variable variable;
-  
-};
 
 static void _toml_print_error(const int error, const char* msg, const char* line) {
   if (line) {
@@ -162,38 +158,29 @@ const char* toml_readline(tomlFile* file, ssize_t* size) {
 }
 
 
-static int _valid_first_char(int c) {
-  for (int i = 'a'; i < 'z' + 1; i++) {
-    if (c == i)
-      return c;
-  }
-  for (int i = 'A'; i < 'Z' + 1; i++) {
-    if (c == i)
-      return c;
-  }
-  return 0;
-}
-
 static ssize_t _toml_look_for_valid_name(const char* name, const size_t end) {
   if (!isalpha(name[0]) && !isalnum(name[0])) {
     return -1;
   }
   size_t i = 1;
   for (; i < end; i++) {
-    if (name[i] == COMMENT || name[i] == TABLE_SIMBOLE[TABLE_CLOSE])
+    if (name[i] == TABLE_SIMBOLE[TABLE_CLOSE] || \
+      isspace(name[i] || isblank(name[i])))
       break ;
-    if (isspace(name[i] || isblank(name[i])))
+    if (name[i] == COMMENT) {
+      printf("eheh\n");
       return -1;
+    }
   }
   return i;
 }
 
 
-static int _toml_look_type(const char* line, const size_t end) {
+static int _toml_look_type(const char* line, const size_t end, int *type) {
   size_t i = 0;
   int error = 1;
   int table = 0;
-  int type = None;
+  *type = None;
   while (line[i++] == TABLE_SIMBOLE[TABLE_OPEN]) {
     if (table > 2) {
       break;
@@ -202,7 +189,7 @@ static int _toml_look_type(const char* line, const size_t end) {
   }
   const ssize_t parseName = _toml_look_for_valid_name(line + i, end - i);
   if (table < 3 && parseName != -1) {
-    type = table ? (Table + table - 1) : Variable;
+    *type = table ? (Table + table - 1) : Variable;
     i += parseName;
     while (i < end) {
       if (line[i++] == TABLE_SIMBOLE[TABLE_CLOSE])
@@ -213,7 +200,6 @@ static int _toml_look_type(const char* line, const size_t end) {
     if (table == 0)
       error = 0;
   }
-  printf("%s%3.zu [%d]%s\n", error ? "⛔" : "✅" ,end, type, line);
   return error;
 }
 
@@ -221,29 +207,33 @@ int toml_get_value(const char* line, const size_t lineLen, struct Variable* var)
   if (!line || !var) {
     return 1;
   }
+  int type;
   bzero(var, sizeof(*var));
   size_t i = 0;
   for (; i < lineLen; i++) {
     if (strchr(VALID_SPACE, line[i]) == NULL)
-      break ;
+    break ;
   }
   if (i == lineLen)
     return 1;
-  return _toml_look_type(line + i, lineLen - i);
+  if (_toml_look_type(line + i, lineLen - i, &type))
+    return 1;
+  return 0;
 }
 
 int toml_is_file_valid(tomlFile* file) {
   int error = 0;
   if (!file)
-    return 1;
+  return 1;
   if (file->fileSize > MAX_FILE_SIZE || file->totalLine < 1)
-    return 2;
+  return 2;
   struct Variable vars[MAX_VARIABLE + 1];
   toml_zero_read(file);
   ssize_t lineLen = 0;
   for (size_t i = 0; i < file->totalLine - 1; i++) {
     const char* line = toml_readline(file, &lineLen);
     error += toml_get_value(line, lineLen, vars);
+    printf("%s|%s\n", error ? "bad" : "gg!", line);
   }
   
   return error;

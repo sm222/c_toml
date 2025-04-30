@@ -2,6 +2,7 @@
 #include "src/c_toml.h"
 
 int main(int ac, char** av) {
+  printf("\n%s\n\n", toml_version());
   for (int i = 1; i < ac; i++) {
     tomlFile* file = toml_init(av[i]);
     toml_info(file);
