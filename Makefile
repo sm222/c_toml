@@ -1,16 +1,16 @@
-TEST		= test.out
+TEST		=	test.out
 
 CC			=	cc
 CFLAG 		=	-Wall -Werror -Wextra
-LIB			= src/c_toml.a
+LIB			=	src/c_toml.a
 
 DEBUG		=	-g
 
 MAKEFLAGS	+=	--no-print-directory
 
-SRCS	=	main.c
+SRCS		=	main.c
 ##
-OBJS	=	$(SRCS:.c=.o)
+OBJS		=	$(SRCS:.c=.o)
 
 ##
 
@@ -30,6 +30,7 @@ $(OBJS): $(SRCS)
 
 clean:
 	$(RM) $(OBJS)
+	@make -C src clean
 
 fclean: clean
 	$(RM) $(NAME) $(TEST)

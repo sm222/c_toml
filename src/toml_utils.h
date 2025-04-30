@@ -23,6 +23,9 @@
 # define TABLE_OPEN      0
 # define TABLE_CLOSE     1
 
+# define VALID_VAR_NAME_SECSION 3
+# define VALID_VAR_NAME "azAZ09"
+
 # define FILE_EXTENSION  ".toml"
 
 # define MAX_FILE_SIZE 10000

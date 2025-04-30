@@ -144,7 +144,7 @@ const char* toml_readline(tomlFile* file, ssize_t* size) {
   while (file->headByte < len) {
     if (strchr(VALID_SPACE, file->rawData[file->head][file->headByte])) {
       file->headByte++;
-    }
+    } // use to skip '#' comment line
     else if (file->rawData[file->head][file->headByte] == COMMENT) {
       file->head++;
       return toml_readline(file, size);
@@ -159,16 +159,20 @@ const char* toml_readline(tomlFile* file, ssize_t* size) {
 
 
 static ssize_t _toml_look_for_valid_name(const char* name, const size_t end) {
-  if (!isalpha(name[0]) && !isalnum(name[0])) {
-    return -1;
+  int test = 0;
+  for (int i = 0; i < VALID_VAR_NAME_SECSION; i++) {
+    for (int j = VALID_VAR_NAME[i * 2]; j < VALID_VAR_NAME[i * 2 + 1] + 1; j++) {
+      if (*name == j) {test = j;}
+    }
   }
+  if (!test)
+    return -1;
   size_t i = 1;
   for (; i < end; i++) {
-    if (name[i] == TABLE_SIMBOLE[TABLE_CLOSE] || \
-      isspace(name[i] || isblank(name[i])))
-      break ;
+    if (name[i] == TABLE_SIMBOLE[TABLE_CLOSE]) {
+        break ;
+      }
     if (name[i] == COMMENT) {
-      printf("eheh\n");
       return -1;
     }
   }
@@ -181,21 +185,23 @@ static int _toml_look_type(const char* line, const size_t end, int *type) {
   int error = 1;
   int table = 0;
   *type = None;
-  while (line[i++] == TABLE_SIMBOLE[TABLE_OPEN]) {
+  while (line[i] == TABLE_SIMBOLE[TABLE_OPEN]) {
     if (table > 2) {
-      break;
+      return 1;
     }
     table++;
+    i++;
   }
-  const ssize_t parseName = _toml_look_for_valid_name(line + i, end - i);
+  const ssize_t parseName = _toml_look_for_valid_name(line + table, end - table);
   if (table < 3 && parseName != -1) {
     *type = table ? (Table + table - 1) : Variable;
     i += parseName;
     while (i < end) {
-      if (line[i++] == TABLE_SIMBOLE[TABLE_CLOSE])
+      if (line[i] == TABLE_SIMBOLE[TABLE_CLOSE])
         table--;
       else
         break;
+      i++;
     }
     if (table == 0)
       error = 0;
@@ -232,9 +238,9 @@ int toml_is_file_valid(tomlFile* file) {
   ssize_t lineLen = 0;
   for (size_t i = 0; i < file->totalLine - 1; i++) {
     const char* line = toml_readline(file, &lineLen);
-    error += toml_get_value(line, lineLen, vars);
-    printf("%s|%s\n", error ? "bad" : "gg!", line);
+    const int r = toml_get_value(line, lineLen, vars);
+    error += r;
+    printf("%s|%s\n", r ? "⛔" : "✅", line);
   }
-  
   return error;
 }

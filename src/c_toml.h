@@ -75,7 +75,6 @@ static const char* const FormatTypes[] = {
 
 typedef struct C_str {
   size_t len;
-  size_t head;
   char*  line;
   bool   lineAlloc;
 } C_str;
@@ -100,6 +99,13 @@ typedef union u_Types {
   unsigned int  Bool;
 } u_Types;
 
+struct dict {
+  char*   key;
+  int     type;
+  u_Types value;
+};
+
+
 struct Variable {
   int      type;
   int      form; // array, table
@@ -114,8 +120,8 @@ typedef struct tomlFile {
   const char* const*  rawData;
   const size_t        fileSize; // byte size
   const size_t        totalLine;
-  const char*         fileName; // file name without path
-  const char*         filePath; // file path whit name
+  const char* const   fileName; // file name without path
+  const char* const   filePath; // file path whit name
   // - - - - - - - - - - - - -
   size_t              head;     // reading head (line)
   size_t              headByte; // head + byte (rawData[head][headbyte])
@@ -125,22 +131,23 @@ typedef struct tomlFile {
 
 const char* const toml_version(void);
 
-tomlFile   *toml_init(const char* filePath);
-int         toml_end(tomlFile* file);
+tomlFile*         toml_init(const char* filePath);
+int               toml_end(tomlFile* file);
 
 //        -- --  --  --  --  --  --  --
 
-void        toml_info(const tomlFile* file);
-int         toml_zero_read(tomlFile* file);
+void              toml_info(const tomlFile* file);
+int               toml_zero_read(tomlFile* file);
 
 //
-const char* toml_readline(tomlFile* file, ssize_t* size);
+const char*       toml_readline(tomlFile* file, ssize_t* size);
 //
 
-bool        toml_jump_to_line(tomlFile* file, const size_t line);
-bool        toml_jump_to_table(tomlFile* file, const char* table);
-bool        toml_jump_to_key(  tomlFile* file, const char* key);
+bool              toml_jump_to_line(tomlFile* file, const size_t line);
+bool              toml_jump_to_table(tomlFile* file, const char* table);
+bool              toml_jump_to_key(  tomlFile* file, const char* key);
+struct Variable*  toml_get_value_type(tomlFile* file);
 
-int         toml_is_file_valid(tomlFile* file);
+int               toml_is_file_valid(tomlFile* file);
 
 #endif
