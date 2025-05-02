@@ -3,11 +3,11 @@
 #include "src/toml_utils.h"
 
 int main(int ac, char** av) {
-
-  printf("\n%s\n\n", toml_version());
+  printf("\n%s\n%s \n", toml_version(), KEY_VALUE(10));
   for (int i = 1; i < ac; i++) {
     tomlFile* file = toml_init(av[i]);
     toml_info(file);
+    printf("file error %d\n", file->error);
     const char* l = "";
     while (l) {
       ssize_t error = 0;

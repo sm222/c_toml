@@ -19,14 +19,14 @@ all: build
 build:
 	@make -C src
 
-run: $(TEST)
+run: all $(TEST)
 	./$(TEST) test/test.toml
 
 $(TEST): $(OBJS)
 	$(CC) $(CFLAG) $(DEBUG) $(OBJS) $(LIB) -o $(TEST)
 
 $(OBJS): $(SRCS)
-	$(CC) $(CFLAGS) $(DEBUG) -c $(SRCS)
+	$(CC) $(CFLAG) $(DEBUG) -c $(SRCS)
 
 clean:
 	$(RM) $(OBJS)

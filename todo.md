@@ -30,18 +30,5 @@
 
 
 ```c
-struct Table
-{
-    char*   tableName;
-    Field*  fields;
-    size_t  fieldAmount;
-}
 
-struct Field
-{
-    char*       key;
-    void*       value;
-    size_t      amount;
-    Variable    type;
-}
 ```

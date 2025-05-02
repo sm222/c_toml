@@ -3,9 +3,11 @@
 
 # include <unistd.h>
 # include <stdio.h>
-# include <stdio.h>
 # include <unistd.h>
 # include <stdbool.h>
+# include "toml_types.h"
+
+
 
 #ifndef FILE_SEP
 # define FILE_SEP '/'
@@ -31,20 +33,45 @@
 # define MAX_FILE_SIZE 10000
 # define MAX_VARIABLE  4000
 
-struct tomlFileEdit {
-    char**          rawData;
-    size_t          fileSize; // byte size
-    size_t          totalLine;
-    char*           fileName; // file name with out path
-    char*           filePath; // file path;
-    // - - - - - - - - - -
-    size_t          head;     // reading head (line)
-    size_t          headByte; // head + byte (rawData[head][headbyte])
-    // - - - - - - - - - - - - -
-    int             error;
-};
+//************************************/
+// toml function for the lib         */
+// user can but SHOULD NOT use those */
+//************************************/
 
-//void _toml_set_name(struct tomlFileEdit* file, const char* filePath);
 
+//********************************/
+//              Start            */
+//********************************/
+
+void*    _toml_init_data_(const char* filePath);
+
+void     _toml_set_name(void* file, const char* filePath);
+void     _toml_read_file(void* file);
+
+
+
+ssize_t  _toml_skip_spaces(tomlFile* file);
+
+//********************************/
+//             debug             */
+//********************************/
+
+void _toml_print_error_parsing(tomlFile* file);
+
+//********************************/
+//              var              */
+//********************************/
+
+t_table* _toml_make_tables(const char* name, t_field* fields, size_t fieldAmount);
+t_table* _toml_make_default_table(const char* name);
+
+t_field* _toml_make_field(const char* key, e_types type, void* value, size_t ammout);
+t_field* _toml_make_default_field(const char* key);
+
+//********************************/
+//              end              */
+//********************************/
+
+void      _toml_free_file(void* file);
 
 #endif

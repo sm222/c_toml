@@ -11,7 +11,8 @@ DEBUG		=	-g
 
 
 SRCS	=	gnl.c \
-			toml_main.c
+			toml_main.c \
+			toml_utils.c
 ##
 OBJS	=	$(SRCS:.c=.o)
 
@@ -24,7 +25,7 @@ $(NAME): $(OBJS)
 	ar -rcs $(NAME) $(OBJS)
 
 $(OBJS): $(SRCS)
-	$(CC) $(DEBUG) $(CFLAGS) -c $(SRCS)
+	$(CC) $(DEBUG) $(CFLAG) -c $(SRCS)
 
 clean:
 	$(RM) $(OBJS)

@@ -94,6 +94,7 @@ char* get_next_line(int fd) {
     book = calloc(1, sizeof(char));
   if (!book)
     return NULL;
+  t_val.rv = 0;
   while (ft_find(book) == '0') {
     s_bzero(t_val.readtmp, BUFFER_SIZE + 1);
     t_val.rv = read(fd, t_val.readtmp, BUFFER_SIZE);
@@ -110,8 +111,7 @@ char* get_next_line(int fd) {
   return (safe_return(&book, &t_val));
 }
 
-static void  ft_allfree(char **p)
-{
+static void  ft_allfree(char **p) {
   int  i = 0;
 
   while (p[i])
@@ -119,8 +119,7 @@ static void  ft_allfree(char **p)
   free(p);
 }
 
-static int  nb_word(const char *str, char c)
-{
+static int  nb_word(const char *str, char c) {
   int  i = 0;
   int  size = 0;
 
