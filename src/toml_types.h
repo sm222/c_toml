@@ -34,7 +34,7 @@ typedef enum {
   LocalTime     ,
 } e_types;
 
-# define X_IN_Y(x, y)    (x < y)
+# define X_IN_Y(x, y)    (x < y && x >= 0)
 
 static const char* const KeyValueTypes[] = {
   "Invalid!",
@@ -62,7 +62,7 @@ static inline size_t _toml_get_size_array(const char* const* array) {
 # define GET_ARRAY_SIZE(array)  _toml_get_size_array(array)
 
 # define KEY_VALUE(types) \
-(types > GET_ARRAY_SIZE(KeyValueTypes) - 1|| types < 0) ? "" : KeyValueTypes[types]
+(X_IN_Y(types, GET_ARRAY_SIZE(KeyValueTypes))) ? KeyValueTypes[types] : "out of bound"
 
 typedef struct {
   char*       key;
@@ -71,7 +71,7 @@ typedef struct {
   size_t      amount;
 } t_field;
 
-typedef struct  {
+typedef struct {
   t_field*  fields;
   char*     tableName;
   size_t    fieldAmount;
@@ -82,6 +82,11 @@ struct dict {
   t_field  type;
   e_types  value;
 };
+
+typedef struct {
+  char*   key;
+  size_t  line;
+} t_knowKey;
 
 
 typedef struct tomlFile {
@@ -95,6 +100,8 @@ typedef struct tomlFile {
   size_t              cursor; // line + byte (rawData[line][cursor])
   // - - - - - - - - - - - - -
   int                 error;
+  t_knowKey*          keysList;
+  size_t              keysListSize;
 } tomlFile;
 
 #endif

@@ -129,6 +129,17 @@ static int _toml_look_type(const char* line, const size_t end, int *type) {
   return error;
 }
 
+int _toml_is_name_fields_valid(tomlFile* file) {
+  int table = 0;
+  while (file->rawData[file->fileSize][file->cursor] == TABLE_SIMBOLE[TABLE_OPEN]) {
+    if (table > 2) {
+      return 1;
+    }
+    table++;
+  }
+  return 0;
+}
+
 int toml_get_value(const char* line, const size_t lineLen) {
   if (!line) {
     return 1;
@@ -153,6 +164,7 @@ int toml_is_file_valid(tomlFile* file) {
   if (file->fileSize > MAX_FILE_SIZE || file->totalLine < 1)
     return 2;
   toml_zero_read(file);
+  //todo att calloc for keysList
   ssize_t lineLen = 0;
   for (size_t i = 0; i < file->totalLine - 1; i++) {
     const char* line = toml_readline(file, &lineLen);

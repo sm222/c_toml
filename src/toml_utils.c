@@ -17,7 +17,9 @@ struct tomlFileEdit {
   size_t            line;     // reading line (line)
   size_t            cursor; // line + byte (rawData[line][cursor])
   // - - - - - - - - - - - - -
-    int             error;
+  int               error;
+  t_knowKey*        keysList;
+  size_t            keysListSize;
 };
 
 //********************************/
