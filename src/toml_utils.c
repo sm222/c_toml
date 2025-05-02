@@ -131,7 +131,7 @@ ssize_t _toml_skip_spaces(tomlFile* file) {
   size_t lineLen = strlen(file->rawData[file->line]);
   while (file->cursor < lineLen) {
     if (strchr(VALID_SPACE, file->rawData[file->line][file->cursor])){
-      file->cursor++;
+      _toml_add_to_read(file, 2, 1);
       continue ;
     }
     break ;
@@ -142,6 +142,43 @@ ssize_t _toml_skip_spaces(tomlFile* file) {
 /*********************************/
 /*              var              */
 /*********************************/
+
+/*
+* 1 line
+* 2 cursor
+* 3 line & cursor
+*/
+int _toml_zero_read(void* file, int mode) {
+  if (!file)
+    return 1;
+  struct tomlFileEdit* data = file;
+  if (mode == 1 || mode == 3)
+    data->line = 0;
+  if (mode == 2 || mode == 3)
+    data->cursor = 0;
+  return 0;
+}
+
+/*
+* 1 line
+* 2 cursor
+* 3 line & cursor
+*/
+int _toml_add_to_read(void* file, int mode, int ammout) {
+  if (!file)
+    return 1;
+  struct tomlFileEdit* data = file;
+  if (mode == 1 || mode == 3)
+    data->line += ammout;
+  if (mode == 2 || mode == 3)
+    data->cursor += 1;
+  return 0;
+}
+
+
+bool  _toml_clean_known_keys() {
+  return true;
+}
 
 t_table* _toml_make_default_table(const char* name) {
   t_table* t = calloc(sizeof(*t), 1);
@@ -192,4 +229,5 @@ void _toml_free_file(void* file) {
     free(freeFile->fileName);
   free(freeFile->filePath);
   free(freeFile);
+  //todo add free of keys list
 }

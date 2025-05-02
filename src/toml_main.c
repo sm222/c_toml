@@ -21,11 +21,7 @@ const char*    toml_version(void) {
 }
 
 int toml_zero_read(tomlFile* file) {
-  if (!file)
-    return 1;
-  file->line = 0;
-  file->cursor = 0;
-  return 0;
+  return _toml_zero_read(file, 3);
 }
 
 /// @brief 
@@ -65,16 +61,18 @@ const char* toml_readline(tomlFile* file, ssize_t* size) {
   if (file->line >= file->totalLine) {
     return NULL;
   }
-  file->cursor = 0;
+  _toml_zero_read(file, 2);
   const size_t skip = _toml_skip_spaces(file);
   const size_t len = strlen(file->rawData[file->line]);
   if (file->rawData[file->line][skip] == COMMENT) {
-    file->line++;
+    _toml_add_to_read(file, 1, 1);
     return toml_readline(file, size);
   }
   if (size)
     *size = len;
-  return file->rawData[file->line++];
+  const char* resultLine = file->rawData[file->line];
+  _toml_add_to_read(file, 1, 1);
+  return resultLine;
 }
 
 
@@ -164,6 +162,9 @@ int toml_is_file_valid(tomlFile* file) {
   if (file->fileSize > MAX_FILE_SIZE || file->totalLine < 1)
     return 2;
   toml_zero_read(file);
+  if (!file->keysList) {
+
+  }
   //todo att calloc for keysList
   ssize_t lineLen = 0;
   for (size_t i = 0; i < file->totalLine - 1; i++) {

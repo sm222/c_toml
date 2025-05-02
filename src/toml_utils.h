@@ -62,6 +62,10 @@ void _toml_print_error_parsing(tomlFile* file);
 //              var              */
 //********************************/
 
+int      _toml_zero_read(void* file, int mode);
+int      _toml_add_to_read(void* file, int mode, int ammout);
+
+
 t_table* _toml_make_tables(const char* name, t_field* fields, size_t fieldAmount);
 t_table* _toml_make_default_table(const char* name);
 
