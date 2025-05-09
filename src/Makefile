@@ -3,7 +3,7 @@ NAME		=	c_toml.a
 DEBUG_NAME	=	test.out
 
 CC			=	cc
-CFLAG 		=	-Wall -Werror -Wextra -g
+CFLAGS 		=	-Wall -Werror -Wextra -g
 
 MAKEFLAGS	+=	--no-print-directory
 
@@ -21,10 +21,10 @@ OBJS	=	$(SRCS:.c=.o)
 all: $(NAME)
 	@echo $(NAME) done
 
-$(NAME): $(OBJS)
+$(NAME): $(CC)
 	ar -rcs $(NAME) $(OBJS)
 
-$(OBJS): $(SRCS)
+$(CC): $(OBJS)
 	$(CC) $(DEBUG) $(CFLAG) -c $(SRCS)
 
 clean:

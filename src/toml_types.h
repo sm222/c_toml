@@ -92,13 +92,14 @@ typedef struct {
 // we don't trust the user 
 typedef struct tomlFile {
   const char* const*      rawData;
-  const size_t            fileSize;  // byte size
+  const size_t            fileSize;   // byte size
   const size_t            totalLine;
-  const char* const       fileName;  // file name without path
-  const char* const       filePath;  // file path whit name
-  // - - - - - - - - - - - - - - - - //
-  const size_t            line;      // reading line
-  const size_t            cursor;    // line + cursor (rawData[line][cursor])
+  const char* const       fileName;   // file name without path
+  const char* const       filePath;   // file path whit name
+  // - - - - - - - - - - - - - - - -  //
+  const size_t            line;       // reading line
+  const size_t            cursor;     // line + cursor (rawData[line][cursor])
+  const ssize_t           currentLen; // strlen of (line) after toml_readline -1 line is NULL
   // - - - - - - - - - - - - -
   int                     error;
   const t_knowKey* const  keysList;

@@ -5,9 +5,6 @@
 #include <stdlib.h>
 #include <string.h>
 #include <strings.h>
-#include <ctype.h>
-
-#include "gnl.h"
 
 
 const char*    toml_version(void) {
@@ -18,6 +15,14 @@ const char*    toml_version(void) {
   snprintf(s, 20, "c_toml version: UNDEFINE");
   #endif
   return s;
+}
+
+void  _toml_print_l(tomlFile* file) {
+  if (!file)
+    return;
+  const char* l = file->rawData[LINE_OF_SET(file->line)];
+  printf("%zu:%zu [%zu]\n%s\n%s\n", strlen(l), file->cursor, file->cursor ,l, file->cursor < (size_t)file->currentLen ? l : ":<- end");
+  printf("____________________________\n");
 }
 
 int toml_zero_read(tomlFile* file) {
@@ -43,7 +48,7 @@ int toml_end(tomlFile* file) {
 void toml_info(const tomlFile* file) {
   if (!file)
     return ;
-  const int size = 1000;
+  const int size = 1001;
   char      str[size];
   snprintf(str, size -1,"name: %s\n\tpath: %s\n"  \
     "\tsize: %zu\n\ttotal line: %zu\n\terror %d\n"\
@@ -52,106 +57,42 @@ void toml_info(const tomlFile* file) {
   write(1, str, strlen(str));
 }
 
+
+const char* _toml_read_line(tomlFile* file, ssize_t* size) {
+  _toml_zero_read(file, 2);
+  const size_t skip = _toml_skip_spaces(file);
+  const size_t len = strlen(file->rawData[LINE_OF_SET(file->line)]);
+  if (file->rawData[LINE_OF_SET(file->line)][skip] == COMMENT) {
+    _toml_add_to_read(file, 1, 1);
+    return _toml_read_line(file, size);
+  }
+  if (size)
+    *size = len;
+  _toml_set_readLine_len(file, len);
+  return file->rawData[LINE_OF_SET(file->line)];
+}
+
 // dose not alloc memorry
 const char* toml_readline(tomlFile* file, ssize_t* size) {
   if (size)
     *size = -1;
-  if (!file)
-    return NULL;
-  if (file->line >= file->totalLine) {
-    return NULL;
-  }
-  _toml_zero_read(file, 2);
-  const size_t skip = _toml_skip_spaces(file);
-  const size_t len = strlen(file->rawData[file->line]);
-  if (file->rawData[file->line][skip] == COMMENT) {
-    _toml_add_to_read(file, 1, 1);
-    return toml_readline(file, size);
-  }
-  if (size)
-    *size = len;
-  const char* resultLine = file->rawData[file->line];
   _toml_add_to_read(file, 1, 1);
-  return resultLine;
+  if (!file || file->line >= file->totalLine)
+    return NULL;
+  return _toml_read_line(file, size);
 }
 
 
-static ssize_t _toml_look_for_valid_name(const char* name, const size_t end) {
-  int test = 0;
-  for (int i = 0; i < VALID_VAR_NAME_SECSION; i++) {
-    for (int j = VALID_VAR_NAME[i * 2]; j < VALID_VAR_NAME[i * 2 + 1] + 1; j++) {
-      if (*name == j) {test = j;}
-    }
-  }
-  if (!test)
-    return -1;
-  size_t i = 1;
-  for (; i < end; i++) {
-    if (name[i] == TABLE_SIMBOLE[TABLE_CLOSE]) {
-        break ;
-      }
-    if (name[i] == COMMENT) {
-      return -1;
-    }
-  }
-  return i;
-}
-
-
-static int _toml_look_type(const char* line, const size_t end, int *type) {
-  size_t i = 0;
-  int error = 1;
+static int _toml_get_name(tomlFile* file) {
+  const ssize_t space = _toml_skip_spaces(file);
+  if (space == -1)
+    return 1;
   int table = 0;
-  *type = -1;
-  while (line[i] == TABLE_SIMBOLE[TABLE_OPEN]) {
-    if (table > 2) {
-      return 1;
-    }
-    table++;
-    i++;
+  _toml_add_to_read(file, 2, space);
+  while (table < 3 && file->cursor < (size_t)file->currentLen) {
+    _toml_add_to_read(file, 2, 1);
   }
-  const ssize_t parseName = _toml_look_for_valid_name(line + table, end - table);
-  if (table < 3 && parseName != -1) {
-    *type = table ? (Table + table - 1) : Field;
-    i += parseName;
-    while (i < end) {
-      if (line[i] == TABLE_SIMBOLE[TABLE_CLOSE])
-        table--;
-      else
-        break;
-      i++;
-    }
-    if (table == 0)
-      error = 0;
-  }
-  return error;
-}
-
-int _toml_is_name_fields_valid(tomlFile* file) {
-  int table = 0;
-  while (file->rawData[file->fileSize][file->cursor] == TABLE_SIMBOLE[TABLE_OPEN]) {
-    if (table > 2) {
-      return 1;
-    }
-    table++;
-  }
-  return 0;
-}
-
-int toml_get_value(const char* line, const size_t lineLen) {
-  if (!line) {
-    return 1;
-  }
-  int type;
-  size_t i = 0;
-  for (; i < lineLen; i++) {
-    if (strchr(VALID_SPACE, line[i]) == NULL)
-    break ;
-  }
-  if (i == lineLen)
-    return 1;
-  if (_toml_look_type(line + i, lineLen - i, &type))
-    return 1;
+  _toml_print_l(file);
   return 0;
 }
 
@@ -163,16 +104,18 @@ int toml_is_file_valid(tomlFile* file) {
     return 2;
   toml_zero_read(file);
   if (!file->keysList) {
-
+    
   }
   //todo att calloc for keysList
   ssize_t lineLen = 0;
-  for (size_t i = 0; i < file->totalLine - 1; i++) {
-    const char* line = toml_readline(file, &lineLen);
-    const int valid = toml_get_value(line, lineLen);
+  const char* line = "";
+  while (line) {
+    line = toml_readline(file, &lineLen);
+    const int invalid = _toml_get_name(file);
     if (line) {
-      error += valid;
-      _toml_print_error_parsing(file);
+      error += invalid;
+      if (invalid)
+        _toml_print_error_parsing(file, file->line);
     }
   }
   return error;

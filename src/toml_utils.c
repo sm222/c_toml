@@ -15,7 +15,8 @@ struct tomlFileEdit {
   char*             filePath; // file path;
   // - - - - - - - - - -
   size_t            line;     // reading line (line)
-  size_t            cursor; // line + byte (rawData[line][cursor])
+  size_t            cursor;   // line + byte (rawData[line][cursor])
+  ssize_t           currentLen; // strlen of (line) after toml_readline -1 line is NULL
   // - - - - - - - - - - - - -
   int               error;
   t_knowKey*        keysList;
@@ -96,24 +97,16 @@ void _toml_read_file(void* file) {
 //********************************/
 
 // call just after readline
-void _toml_print_error_parsing(tomlFile* file) {
+void _toml_print_error_parsing(tomlFile* file, size_t line) {
   if (!file || !file->line || !file->rawData)
     return ;
-  char buff[file->cursor + 2];
-  memset(buff, '~', file->cursor + 1);
+  if (line >= file->totalLine)
+    return;
+  char buff[strlen(file->rawData[line - 1]) + 2];
+  memset(buff, '~', file->cursor);
   buff[file->cursor + 1] = 0;
-  printf("%zu:\n%s\n", file->line, file->rawData[file->line - 1]);
+  printf("%zu:\n%s\n", file->line, file->rawData[line - 1]);
   printf("%s%s^%s\n", TXT_RED, !file->cursor ? "" : buff, TXT_RESET);
-}
-
-// never call :(
-// need to redo
-void _toml_print_error(const int error, const char* msg, const char* line) {
-  if (line) {
-    printf("c_toml: error:%d %s\n%s|\n", error, msg, line);
-  }
-  else
-    printf("c_toml: error:%d %s\n", error, msg);
 }
 
 //********************************/
@@ -128,9 +121,9 @@ ssize_t _toml_skip_spaces(tomlFile* file) {
     return -1;
   if (file->line >= file->totalLine)
     return -1;
-  size_t lineLen = strlen(file->rawData[file->line]);
+  size_t lineLen = strlen(file->rawData[LINE_OF_SET(file->line)]);
   while (file->cursor < lineLen) {
-    if (strchr(VALID_SPACE, file->rawData[file->line][file->cursor])){
+    if (strchr(VALID_SPACE, file->rawData[LINE_OF_SET(file->line)][file->cursor])){
       _toml_add_to_read(file, 2, 1);
       continue ;
     }
@@ -171,12 +164,25 @@ int _toml_add_to_read(void* file, int mode, int ammout) {
   if (mode == 1 || mode == 3)
     data->line += ammout;
   if (mode == 2 || mode == 3)
-    data->cursor += 1;
+    data->cursor += ammout;
   return 0;
 }
 
+void     _toml_set_readLine_len(void* file ,ssize_t len) {
+  if (!file)
+    return;
+  struct tomlFileEdit* data = file;
+  data->currentLen = len;
+}
 
-bool  _toml_clean_known_keys() {
+
+bool  _toml_clean_known_keys(void* file) {
+  if (!file)
+    return false;
+  struct tomlFileEdit* data = file;
+  if (data->keysListSize) {
+    free(data->keysList);
+  }
   return true;
 }
 

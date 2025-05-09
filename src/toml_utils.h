@@ -7,6 +7,7 @@
 # include <stdbool.h>
 # include "toml_types.h"
 
+# define LINE_OF_SET(line)   (line - 1)
 
 
 #ifndef FILE_SEP
@@ -56,7 +57,7 @@ ssize_t  _toml_skip_spaces(tomlFile* file);
 //             debug             */
 //********************************/
 
-void _toml_print_error_parsing(tomlFile* file);
+void _toml_print_error_parsing(tomlFile* file, size_t line);
 
 //********************************/
 //              var              */
@@ -64,7 +65,7 @@ void _toml_print_error_parsing(tomlFile* file);
 
 int      _toml_zero_read(void* file, int mode);
 int      _toml_add_to_read(void* file, int mode, int ammout);
-
+void     _toml_set_readLine_len(void* file ,ssize_t len);
 
 t_table* _toml_make_tables(const char* name, t_field* fields, size_t fieldAmount);
 t_table* _toml_make_default_table(const char* name);

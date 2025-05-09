@@ -1,11 +1,11 @@
 TEST		=	test.out
 
 CC			=	cc
-CFLAG 		=	-Wall -Werror -Wextra
 LIB			=	src/c_toml.a
 
 DEBUG		=	-g
 
+CFLAGS		=		-Wall -Werror -Wextra
 MAKEFLAGS	+=	--no-print-directory
 
 SRCS		=	main.c
