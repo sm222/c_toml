@@ -160,7 +160,25 @@ ssize_t _toml_get_file_line_number(tomlFile file) {
   return data->totalLine;
 }
 
+// call after readline
+const char* _toml_current_line(const tomlFile file) {
+  if (!file)
+    return NULL;
+  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
+  if (data->line >= data->totalLine)
+    return NULL;
+  return data->rawData[data->line];
+}
 
+// call after readline
+char  _toml_current_char(const tomlFile file) {
+  if (!file)
+    return 0;
+  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
+  if (data->line >= data->totalLine || data->currentLineLen == -1 || data->cursor >= (size_t)data->currentLineLen)
+    return 0;
+  return data->rawData[data->line][data->cursor];
+}
 
 const char* _toml_read_line(tomlFile file, ssize_t* size) {
   if (!file)

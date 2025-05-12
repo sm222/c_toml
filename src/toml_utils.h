@@ -59,6 +59,9 @@ ssize_t     _toml_skip_spaces(void* file);
 ssize_t     _toml_get_file_byte_size(tomlFile file);
 ssize_t     _toml_get_file_line_number(tomlFile file);
 const char* _toml_read_line(tomlFile file, ssize_t* size);
+//
+const char* _toml_current_line(const tomlFile file);
+char        _toml_current_char(const tomlFile file);
 
 //********************************/
 //             debug             */
