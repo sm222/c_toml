@@ -36,20 +36,14 @@ int toml_end(tomlFile file) {
   return 0;
 }
 
-/*
-void toml_info(const tomlFile* file) {
-  if (!file)
-  return ;
-  const int size = 1001;
-  char      str[size];
-  snprintf(str, size -1,"name: %s\n\tpath: %s\n"  \
-  "\tsize: %zu\n\ttotal line: %zu\n\terror %d\n"\
-  "line: %zu\ncursor: %zu\n", file->fileName,   \
-  file->filePath, file->fileSize, file->totalLine, file->error, file->line, file->cursor);
-  write(1, str, strlen(str));
-}
-*/
 
+void toml_info(const tomlFile file) {
+  _toml_info(file);
+}
+
+int toml_get_error(const tomlFile file) {
+  return _toml_get_error(file);
+}
 
 // dose not alloc memorry
 const char* toml_readline(tomlFile file, ssize_t* size) {

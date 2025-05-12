@@ -64,8 +64,10 @@ const char* _toml_read_line(tomlFile file, ssize_t* size);
 //             debug             */
 //********************************/
 
+int     _toml_get_error(void* file);
 void    _toml_print_l(void* file);
 void    _toml_print_error_parsing(void* file);
+void    _toml_info(const tomlFile file);
 
 //********************************/
 //              var              */

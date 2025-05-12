@@ -50,6 +50,7 @@ int               toml_is_file_valid(tomlFile* file);
 
 void              toml_info(const tomlFile file);
 int               toml_zero_read(tomlFile  file);
+int               toml_get_error(const tomlFile file);
 
 //
 const char*       toml_readline(tomlFile file, ssize_t* size);
