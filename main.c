@@ -6,8 +6,8 @@ int main(int ac, char** av) {
   printf("\n%s\n%s \n", toml_version(), KEY_VALUE(10));
   for (int i = 1; i < ac; i++) {
     tomlFile* file = toml_init(av[i]);
-    toml_info(file);
-    printf("file error %d\n", file->error);
+    //toml_info(file); // todo redo
+    //todo get error
     const char* l = "";
     int line = 0;
     while (l) {

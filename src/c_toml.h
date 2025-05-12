@@ -48,19 +48,19 @@ int               toml_is_file_valid(tomlFile* file);
 
 //        -- --  --  --  --  --  --  --
 
-void              toml_info(const tomlFile* file);
-int               toml_zero_read(tomlFile* file);
+void              toml_info(const tomlFile file);
+int               toml_zero_read(tomlFile  file);
 
 //
-const char*       toml_readline(tomlFile* file, ssize_t* size);
+const char*       toml_readline(tomlFile file, ssize_t* size);
 //
 
 //Todo
-bool              toml_jump_to_line(tomlFile* file, const size_t line);
-bool              toml_jump_to_table(tomlFile* file, const char* table);
-bool              toml_jump_to_key(  tomlFile* file, const char* key);
-t_field*          toml_get_value_type(tomlFile* file);
+bool              toml_jump_to_line(tomlFile file, const size_t line);
+bool              toml_jump_to_table(tomlFile file, const char* table);
+bool              toml_jump_to_key(  tomlFile file, const char* key);
+t_field*          toml_get_value_type(tomlFile file);
 
-int               toml_end(tomlFile* file);
+int               toml_end(tomlFile file);
 
 #endif

@@ -64,6 +64,8 @@ static inline size_t _toml_get_size_array(const char* const* array) {
 # define KEY_VALUE(types) \
 (X_IN_Y(types, GET_ARRAY_SIZE(KeyValueTypes))) ? KeyValueTypes[types] : "out of bound"
 
+typedef void* tomlFile;
+
 typedef struct {
   char*       key;
   e_types     type;
@@ -87,23 +89,5 @@ typedef struct {
   char*   key;
   size_t  line;
 } t_knowKey;
-
-
-// we don't trust the user 
-typedef struct tomlFile {
-  const char* const*      rawData;
-  const size_t            fileSize;   // byte size
-  const size_t            totalLine;
-  const char* const       fileName;   // file name without path
-  const char* const       filePath;   // file path whit name
-  // - - - - - - - - - - - - - - - -  //
-  const size_t            line;       // reading line
-  const size_t            cursor;     // line + cursor (rawData[line][cursor])
-  const ssize_t           currentLen; // strlen of (line) after toml_readline -1 line is NULL
-  // - - - - - - - - - - - - -
-  int                     error;
-  const t_knowKey* const  keysList;
-  const size_t            keysListSize;
-} tomlFile;
 
 #endif

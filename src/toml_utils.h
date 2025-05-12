@@ -50,14 +50,22 @@ void     _toml_set_name(void* file, const char* filePath);
 void     _toml_read_file(void* file);
 
 
+//********************************/
+//            parsing            */
+//********************************/
 
-ssize_t  _toml_skip_spaces(tomlFile* file);
+int         _toml_get_name(tomlFile file);
+ssize_t     _toml_skip_spaces(void* file);
+ssize_t     _toml_get_file_byte_size(tomlFile file);
+ssize_t     _toml_get_file_line_number(tomlFile file);
+const char* _toml_read_line(tomlFile file, ssize_t* size);
 
 //********************************/
 //             debug             */
 //********************************/
 
-void _toml_print_error_parsing(tomlFile* file, size_t line);
+void    _toml_print_l(void* file);
+void    _toml_print_error_parsing(void* file);
 
 //********************************/
 //              var              */
