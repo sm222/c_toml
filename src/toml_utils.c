@@ -28,7 +28,7 @@ struct tomlFileEdit {
 //********************************/
 
 void* _toml_init_data_(const char* filePath) {
-  struct tomlFileEdit* file = calloc(sizeof(struct tomlFileEdit), 1);
+  struct tomlFileEdit* file = calloc(1, sizeof(struct tomlFileEdit));
   if (!file)
     return NULL;
   file->error = 1;
@@ -273,7 +273,7 @@ bool  _toml_clean_known_keys(void* file) {
 }
 
 t_table* _toml_make_default_table(const char* name) {
-  t_table* t = calloc(sizeof(*t), 1);
+  t_table* t = calloc(1, sizeof(*t));
   if (t)
     t->tableName = strdup(name);
   return t;
@@ -289,7 +289,7 @@ t_table* _toml_make_tables(const char* name, t_field* fields, size_t fieldAmount
 }
 
 t_field* _toml_make_default_field(const char* key) {
-  t_field* f = calloc(sizeof(*f), 1);
+  t_field* f = calloc(1, sizeof(*f));
   if (f)
     f->key = strdup(key);
   return f;
