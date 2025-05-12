@@ -96,6 +96,13 @@ void _toml_read_file(void* file) {
 //             debug             */
 //********************************/
 
+int  _toml_get_error(void* file) {
+  if (!file)
+    return -1;
+  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
+  return data->error;
+}
+
 // call just after readline
 void _toml_print_error_parsing(void* file) {
   if (!file)
@@ -120,6 +127,19 @@ void  _toml_print_l(void* file) {
   const char* l = data->rawData[LINE_OF_SET(data->line)];
   printf("%zu:%zu [%zu]\n%s\n%s\n", strlen(l), data->cursor, data->cursor ,l, data->cursor < (size_t)data->currentLineLen ? l : ":<- end");
   printf("____________________________\n");
+}
+
+void    _toml_info(const tomlFile file) {
+  if (!file)
+    return;
+  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
+  const int size = 1001;
+  char      str[size];
+  snprintf(str, size -1,"name: %s\n\tpath: %s\n"  \
+  "\tsize: %zu\n\ttotal line: %zu\n\terror %d\n"\
+  "line: %zu\ncursor: %zu\n", data->fileName,   \
+  data->filePath, data->fileSize, data->totalLine, data->error, data->line, data->cursor);
+  write(1, str, strlen(str));
 }
 
 //********************************/

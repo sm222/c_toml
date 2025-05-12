@@ -3,11 +3,11 @@
 
 
 int main(int ac, char** av) {
-  printf("\n%s\n%s \n", toml_version(), KEY_VALUE(10));
+  printf("\n%s \n", toml_version());
   for (int i = 1; i < ac; i++) {
     tomlFile* file = toml_init(av[i]);
-    //toml_info(file); // todo redo
-    //todo get error
+    toml_info(file);
+    printf("error %d\n", toml_get_error(file));
     const char* l = "";
     int line = 0;
     while (l) {
