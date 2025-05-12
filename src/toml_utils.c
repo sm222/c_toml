@@ -8,19 +8,22 @@
 
 /// @brief 'invisible' form the user point of view
 struct tomlFileEdit {
-  char**            rawData;        //
-  size_t            fileSize;       // byte size
-  size_t            totalLine;      //
-  char*             fileName;       // file name with out path
-  char*             filePath;       // file path;
-  // - - - - - - - - - - - - - - - -//
-  size_t            line;           // reading line (line)
-  size_t            cursor;         // line + byte (rawData[line][cursor])
-  ssize_t           currentLineLen; // strlen of (line) after toml_readline -1 line is NULL
-  // - - - - - - - - - - - - - - - -//
-  int               error;          //
-  t_knowKey*        keysList;       //
-  size_t            keysListSize;   //
+  char**            rawData;           //
+  size_t            fileSize;          // byte size
+  size_t            totalLine;         //
+  char*             fileName;          // file name with out path
+  char*             filePath;          // file path;
+  // - - - - - - - - - - - - - - - - - //
+  size_t            line;              // reading line (line)
+  size_t            cursor;            // line + byte (rawData[line][cursor])
+  ssize_t           currentLineLen;    // strlen of (line) after toml_readline -1 line is NULL
+  // - - - - - - - - - - - - - - - -   //
+  int               error;             //
+  t_knowKey*        keysList;          //
+  size_t            keysListSize;      //
+  // - - - - - - - - - - - - - - - - - //
+  char**            refinedData;       //
+  size_t            refinedDataSize;   //
 };
 
 //********************************/
