@@ -170,24 +170,6 @@ ssize_t _toml_get_file_line_number(tomlFile file) {
   return data->totalLine;
 }
 
-short	ft_set_mode(char c) {
-	static short	last = 0;
-
-	if (c == -1)
-		last = 0;
-	if (c == 0)
-		return (last);
-	if (last == 0 && c == '"')
-		last = 2;
-	else if (last == 2 && c == '"')
-		last = 0;
-	else if (last == 0 && c == '\'')
-		last = 1;
-	else if (last == 1 && c == '\'')
-		last = 0;
-	return (last);
-}
-
 /*
 *  -3 no line or too far,
 *  -2 " not close 2 you are in ",
