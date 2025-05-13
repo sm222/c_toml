@@ -70,6 +70,7 @@ const char* _toml_read_line(tomlFile file, ssize_t* size);
 const char* _toml_current_line(const tomlFile file);
 char        _toml_current_char(const tomlFile file);
 
+
 //********************************/
 //             debug             */
 //********************************/
@@ -86,6 +87,9 @@ void    _toml_info(const tomlFile file);
 int      _toml_zero_read(void* file, int mode);
 int      _toml_add_to_read(void* file, int mode, int ammout);
 void     _toml_set_readLine_len(void* file ,ssize_t len);
+
+ssize_t  _toml_current_line_index(const tomlFile file);
+ssize_t  _toml_current_cursor_index(const tomlFile file);
 
 t_table* _toml_make_tables(const char* name, t_field* fields, size_t fieldAmount);
 t_table* _toml_make_default_table(const char* name);

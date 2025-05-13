@@ -284,6 +284,22 @@ ssize_t _toml_skip_spaces(void* file) {
 /*              var              */
 /*********************************/
 
+ssize_t     _toml_current_line_index(const tomlFile file) {
+  if (!file)
+    return -1;
+  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
+  return data->line;
+}
+
+ssize_t     _toml_current_cursor_index(const tomlFile file) {
+  if (!file)
+    return -1;
+  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
+  return data->cursor;
+}
+
+
+
 /*
 * 1 line
 * 2 cursor
