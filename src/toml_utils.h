@@ -33,6 +33,7 @@
 
 # define MAX_FILE_SIZE 10000
 # define MAX_VARIABLE  4000
+# define MAX_LINE_LEN  1000
 
 //************************************/
 // toml function for the lib         */
