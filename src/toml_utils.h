@@ -18,9 +18,14 @@
 # define FILE_LINE_SEP '\n'
 #endif
 
-# define VALID_SPACE     "\t "
-# define VALID_NEXT_LINE '\r'
-# define COMMENT         '#'
+# define VALID_SPACE        "\t "
+# define VALID_NEXT_LINE    '\r'
+# define COMMENT            '#'
+
+# define QUOTATION_SYMBOLS  "'\""
+# define Q_SINGLE             0
+# define Q_DOUBLE             1
+
 
 # define TABLE_SIMBOLE   "[]"
 # define TABLE_OPEN      0
@@ -59,6 +64,7 @@ int         _toml_get_name(tomlFile file);
 ssize_t     _toml_skip_spaces(void* file);
 ssize_t     _toml_get_file_byte_size(tomlFile file);
 ssize_t     _toml_get_file_line_number(tomlFile file);
+ssize_t     _toml_current_line_len(const tomlFile file);
 const char* _toml_read_line(tomlFile file, ssize_t* size);
 //
 const char* _toml_current_line(const tomlFile file);

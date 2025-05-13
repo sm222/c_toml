@@ -149,6 +149,13 @@ void    _toml_info(const tomlFile file) {
 //            parsing            */
 //********************************/
 
+ssize_t     _toml_current_line_len(const tomlFile file) {
+  if (!file)
+    return -1;
+  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
+  return data->currentLineLen;
+}
+
 ssize_t     _toml_get_file_byte_size(tomlFile file) {
   if (!file)
     return -1;
@@ -161,6 +168,58 @@ ssize_t _toml_get_file_line_number(tomlFile file) {
     return -1;
   struct tomlFileEdit* data = (struct tomlFileEdit*)file;
   return data->totalLine;
+}
+
+short	ft_set_mode(char c) {
+	static short	last = 0;
+
+	if (c == -1)
+		last = 0;
+	if (c == 0)
+		return (last);
+	if (last == 0 && c == '"')
+		last = 2;
+	else if (last == 2 && c == '"')
+		last = 0;
+	else if (last == 0 && c == '\'')
+		last = 1;
+	else if (last == 1 && c == '\'')
+		last = 0;
+	return (last);
+}
+
+/*
+*  -3 no line or too far,
+*  -2 " not close 2 you are in ",
+*  -1 ' not close 1 you are in ',
+*   0 in noting.
+*/
+int     _toml_is_in_quotation(const tomlFile file, ssize_t i) {
+  const char* line = _toml_current_line(file);
+  if (!line)
+    return -3;
+  const ssize_t len = _toml_current_line_len(file);
+  if (i >= len)
+    return -3;
+  ssize_t j = 0;
+  int quotation    = 0;
+  int quotationOfI = 0;
+  while (j < len) {
+    if (line[j] == QUOTATION_SYMBOLS[Q_SINGLE] && quotation == 0)
+      quotation = Q_SINGLE + 1;
+    else if (line[j] == QUOTATION_SYMBOLS[Q_DOUBLE] && quotation == 0)
+      quotation = Q_DOUBLE + 1;
+    else if (line[j] == QUOTATION_SYMBOLS[Q_SINGLE] && quotation == Q_SINGLE + 1)
+      quotation = 0;
+    else if (line[j] == QUOTATION_SYMBOLS[Q_DOUBLE] && quotation == Q_DOUBLE + 1)
+      quotation = 0;
+    if (j == i)
+      quotationOfI = quotation;
+    j++;
+  }
+  if (quotation != 0)
+    quotationOfI *= -1;
+  return quotationOfI;
 }
 
 // call after readline
