@@ -46,7 +46,7 @@ int test1(void) {
     const char* r_line = _toml_current_line(file);
     const char  r_char = _toml_current_char(file);
     const ssize_t r_lineLen = _toml_current_line_len(file);
-    printf("[%3.zu]_______________________\n", i);
+    printf("[%3zu]_______________________\n", i);
     if (q_line[i] != r_line && strcmp(q_line[i], r_line) != 0) {
       printf("line is not valid:\n" \
         "\tgot %s\n" \
@@ -77,11 +77,11 @@ int test2(void) {
   const char* const fileTXT[] = {
     NULL,
     "Test = 1",
-    "Test = 2",
-    "Test = 3",
-    "Test = 4",
-    "Test = 5",
-    "Test = 6",
+    "2",
+    "test   = 3",
+    "wow   = 4",
+    "Test=5",
+    "<|> = 6",
     NULL,
   };
   {
@@ -89,12 +89,54 @@ int test2(void) {
     _toml_info(file);
     //
     if (file) {
-      
-      
+      for (size_t i = 0; i < 8; i++) {
+        printf("[%3zu]______________________\n", i);
+        const char* readlineResult = _toml_current_line(file);
+        //!  line test
+        if ((!fileTXT[i] && readlineResult) || (fileTXT[i] && !readlineResult)) {
+          errorNb++;
+          printf("error:\n>%s\n<%s\n", fileTXT[i], readlineResult);
+        }
+        else if (readlineResult && fileTXT[i]) {
+          if (strcmp(fileTXT[i], readlineResult) != 0) {
+            errorNb++;
+            printf("error:\n>%s\n<%s\n", fileTXT[i], readlineResult);
+          }
+        }
+        //!            _toml_current_char
+        const char c = _toml_current_char(file);
+        if (!fileTXT[i] ? '\0' : fileTXT[i][0] != c) {
+          char b[2];
+          b[0] = c;
+          b[1] = 0;
+          errorNb++;
+          printf("error:\n>%c\n<%s\n", \
+            !fileTXT[i] ? '\0' : fileTXT[i][0], c ? b : "\\0");
+        }
+        const ssize_t lineLen = _toml_current_line_len(file);
+        const ssize_t testLineLen = _toml_strlen(fileTXT[i]);
+        if (lineLen != testLineLen) {
+          errorNb++;
+          printf("error: _toml_current_line_len > want\n" \
+          "<%zu\n>%zu\n",lineLen, testLineLen);
+        }
+        //! _toml_current_cursor_index
+        if (_toml_current_cursor_index(file) != 0) {
+          errorNb++;
+          printf("error: want 0, got %zu \n", _toml_current_cursor_index(file));
+        }
+        ssize_t sizeFromReadline;
+        toml_readline(file, &sizeFromReadline);
+        const ssize_t sizeFromReadlineEx = _toml_current_line_len(file);
+        if (sizeFromReadline != sizeFromReadlineEx) {
+          printf("error : size form readline\n>%zu\n<%zu\n", sizeFromReadlineEx, sizeFromReadline);
+          errorNb++;
+        }
+      }
       //
       _toml_free_file(file);
     }
-    
+    printf("total error: %d\n", errorNb);
   }
   return errorNb;
 }

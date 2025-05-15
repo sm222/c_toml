@@ -3,7 +3,7 @@
 
 
 static bool _toml_test_valid_char(const char c) {
-  for (size_t i = 0; i < VALID_VAR_NAME_SECSION; i++) {
+  for (size_t i = 0; i < VALID_VAR_NAME_SECTION; i++) {
     for (char v = VALID_VAR_NAME[i * 2]; v < VALID_VAR_NAME[i * 2 + 1] + 1; v++) {
       if (c == v)
         return true;

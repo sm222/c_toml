@@ -140,12 +140,12 @@ void _toml_print_error_parsing(const tomlFile file) {
   struct tomlFileEdit* data = (struct tomlFileEdit*)file;
   if (!data->line || !data->rawData)
     return ;
-  if (data->line - 1 >= data->totalLine)
+  if (data->line > data->totalLine)
     return;
-  char buff[strlen(data->rawData[data->line - 1]) + 2];
+  char buff[strlen(data->rawData[LINE_OF_SET(data->line)]) + 2];
   memset(buff, '~', data->cursor);
   buff[data->cursor + 1] = 0;
-  printf("%zu:\n%s\n", data->line, data->rawData[data->line - 1]);
+  printf("%zu:\n%s\n", data->line, data->rawData[LINE_OF_SET(data->line)]);
   printf("%s%s^%s\n", TXT_RED, !data->cursor ? "" : buff, TXT_RESET);
 }
 
@@ -252,7 +252,7 @@ const char* _toml_current_line(const tomlFile file) {
   const struct tomlFileEdit* data = (struct tomlFileEdit*)file;
   if (data->line == 0 || data->line > data->totalLine)
     return NULL;
-  return data->rawData[data->line - 1];
+  return data->rawData[LINE_OF_SET(data->line)];
 }
 
 
@@ -261,14 +261,14 @@ char  _toml_current_char(const tomlFile file) {
   if (!file)
     return 0;
   const struct tomlFileEdit* data = (struct tomlFileEdit*)file;
-  if (data->line >= data->totalLine || data->currentLineLen == -1 || data->cursor >= (size_t)data->currentLineLen)
+  if (data->line > data->totalLine || data->currentLineLen == -1 || data->cursor >= (size_t)data->currentLineLen)
     return 0;
-  return data->rawData[data->line][data->cursor];
+  return data->rawData[LINE_OF_SET(data->line)][data->cursor];
 }
 
 
 ssize_t     _toml_current_line_len(const tomlFile file) {
-  if (!file || _toml_current_line_index(file) == 0)
+  if (!file || _toml_current_line_index(file) <= 0)
     return -1;
   const struct tomlFileEdit* data = (struct tomlFileEdit*)file;
   return data->currentLineLen;
@@ -278,7 +278,9 @@ ssize_t     _toml_current_line_len(const tomlFile file) {
 ssize_t     _toml_current_line_index(const tomlFile file) {
   if (!file)
     return -1;
-  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
+  const struct tomlFileEdit* data = (struct tomlFileEdit*)file;
+  if (data->line > data->totalLine)
+    return -1;
   return data->line;
 }
 
@@ -329,6 +331,12 @@ int     _toml_is_in_quotation(const tomlFile file, ssize_t i) {
 /*********************************/
 /*              var              */
 /*********************************/
+
+
+ssize_t     _toml_strlen(const char* s) {
+  return !s ? (size_t)-1 : strlen(s);
+}
+
 
 
 int _toml_get_name(tomlFile file) {

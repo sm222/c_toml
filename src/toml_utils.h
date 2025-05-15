@@ -31,7 +31,7 @@
 # define TABLE_OPEN      0
 # define TABLE_CLOSE     1
 
-# define VALID_VAR_NAME_SECSION 3
+# define VALID_VAR_NAME_SECTION 3
 # define VALID_VAR_NAME "azAZ09"
 
 # define FILE_EXTENSION  ".toml"
@@ -74,7 +74,7 @@ tomlFile  _toml_make_fake_file(const char* const* txt);
 //********************************/
 
 //
-
+ssize_t     _toml_strlen(const char* s);
 ssize_t     _toml_skip_spaces(tomlFile file);
 
 //
@@ -95,6 +95,9 @@ char        _toml_current_char(const tomlFile file);
 ssize_t     _toml_current_line_len(const tomlFile file);
 ssize_t     _toml_current_line_index(const tomlFile file);
 ssize_t     _toml_current_cursor_index(const tomlFile file);
+
+//
+
 int         _toml_is_in_quotation(const tomlFile file, ssize_t i);
 
 
