@@ -1,0 +1,13 @@
+
+global   = true
+
+[abc]
+
+[[hello]]
+
+value = 1
+str = "abc"
+f = 0.01
+
+#this is a comment
+[end]

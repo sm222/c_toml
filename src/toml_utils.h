@@ -50,46 +50,65 @@
 //              Start            */
 //********************************/
 
-void*    _toml_init_data_(const char* filePath);
+tomlFile   _toml_init_data_(const char* filePath);
 
-void     _toml_set_name(void* file, const char* filePath);
-void     _toml_read_file(void* file);
+void       _toml_read_file(tomlFile file);
+void       _toml_set_name(tomlFile  file, const char* filePath);
 
-
-//********************************/
-//            parsing            */
-//********************************/
-
-int         _toml_get_name(tomlFile file);
-ssize_t     _toml_skip_spaces(void* file);
-ssize_t     _toml_get_file_byte_size(tomlFile file);
-ssize_t     _toml_get_file_line_number(tomlFile file);
-ssize_t     _toml_current_line_len(const tomlFile file);
-const char* _toml_read_line(tomlFile file, ssize_t* size);
 //
-const char* _toml_current_line(const tomlFile file);
-char        _toml_current_char(const tomlFile file);
 
 
 //********************************/
 //             debug             */
 //********************************/
 
-int     _toml_get_error(void* file);
-void    _toml_print_l(void* file);
-void    _toml_print_error_parsing(void* file);
-void    _toml_info(const tomlFile file);
+void      _toml_info(const tomlFile file);
+void      _toml_print_l(const tomlFile file);
+int       _toml_get_error(const tomlFile file);
+void      _toml_print_error_parsing(const tomlFile file);
+tomlFile  _toml_make_fake_file(const char* const* txt);
+
+
+//********************************/
+//            parsing            */
+//********************************/
+
+//
+
+ssize_t     _toml_skip_spaces(tomlFile file);
+
+//
+
+bool        _toml_file_done_reading(const tomlFile file);      //todo
+bool        _toml_file_done_reading_line(const tomlFile file); //todo
+const char* _toml_read_line(tomlFile file, ssize_t* size);
+ssize_t     _toml_get_file_line_number(const tomlFile file);
+
+//
+
+ssize_t     _toml_get_file_byte_size(const tomlFile file);
+
+//
+
+const char* _toml_current_line(const tomlFile file);
+char        _toml_current_char(const tomlFile file);
+ssize_t     _toml_current_line_len(const tomlFile file);
+ssize_t     _toml_current_line_index(const tomlFile file);
+ssize_t     _toml_current_cursor_index(const tomlFile file);
+int         _toml_is_in_quotation(const tomlFile file, ssize_t i);
+
 
 //********************************/
 //              var              */
 //********************************/
 
-int      _toml_zero_read(void* file, int mode);
-int      _toml_add_to_read(void* file, int mode, int ammout);
-void     _toml_set_readLine_len(void* file ,ssize_t len);
 
-ssize_t  _toml_current_line_index(const tomlFile file);
-ssize_t  _toml_current_cursor_index(const tomlFile file);
+int        _toml_get_name(tomlFile file);
+//todo     ^ rename
+
+int      _toml_zero_read(tomlFile file, int mode);
+int      _toml_add_to_read(tomlFile file, int mode, int ammout);
+void     _toml_set_readLine_len(tomlFile file ,ssize_t len);
 
 t_table* _toml_make_tables(const char* name, t_field* fields, size_t fieldAmount);
 t_table* _toml_make_default_table(const char* name);
@@ -101,6 +120,6 @@ t_field* _toml_make_default_field(const char* key);
 //              end              */
 //********************************/
 
-void      _toml_free_file(void* file);
+void      _toml_free_file(tomlFile file);
 
 #endif

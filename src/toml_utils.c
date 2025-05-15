@@ -30,7 +30,7 @@ struct tomlFileEdit {
 //              Start            */
 //********************************/
 
-void* _toml_init_data_(const char* filePath) {
+tomlFile  _toml_init_data_(const char* filePath) {
   struct tomlFileEdit* file = calloc(1, sizeof(struct tomlFileEdit));
   if (!file)
     return NULL;
@@ -51,17 +51,7 @@ void* _toml_init_data_(const char* filePath) {
 }
 
 
-void _toml_set_name(void* file, const char* filePath) {
-  struct tomlFileEdit* data = file;
-  data->filePath = strdup(filePath);
-  data->fileName = strrchr(data->filePath, FILE_SEP);
-  if (!data->fileName) {
-    data->fileName = data->filePath;
-    data->filePath = NULL;
-  }
-}
-
-void _toml_read_file(void* file) {
+void _toml_read_file(tomlFile file) {
   struct tomlFileEdit* data = file;
   const char* path = data->filePath ? data->filePath : data->fileName;
   const int fd = open(path , O_RDONLY);
@@ -95,19 +85,56 @@ void _toml_read_file(void* file) {
   }
 }
 
+void _toml_set_name(tomlFile file, const char* filePath) {
+  struct tomlFileEdit* data = file;
+  data->filePath = strdup(filePath);
+  data->fileName = strrchr(data->filePath, FILE_SEP);
+  if (!data->fileName) {
+    data->fileName = data->filePath;
+    data->filePath = NULL;
+  }
+}
+
+
 //********************************/
 //             debug             */
 //********************************/
 
-int  _toml_get_error(void* file) {
+
+void    _toml_info(const tomlFile file) {
+  if (!file)
+    return;
+  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
+  const int size = 1001;
+  char      str[size];
+  snprintf(str, size -1,"name: %s\n\tpath: %s\n"  \
+  "\tsize: %zu\n\ttotal line: %zu\n\terror %d\n"  \
+  "line: %zu\ncursor: %zu\n", data->fileName,     \
+  data->filePath, data->fileSize, data->totalLine, data->error, data->line, data->cursor);
+  write(1, str, strlen(str));
+}
+
+
+void  _toml_print_l(const tomlFile file) {
+  if (!file)
+    return;
+  const struct tomlFileEdit* data = file;
+  const char* l = data->rawData[LINE_OF_SET(data->line)];
+  printf("%zu:%zu [%zu]\n%s\n%s\n", strlen(l), data->cursor, data->cursor ,l, data->cursor < (size_t)data->currentLineLen ? l : ":<- end");
+  printf("____________________________\n");
+}
+
+
+int  _toml_get_error(const tomlFile file) {
   if (!file)
     return -1;
-  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
+  const struct tomlFileEdit* data = (struct tomlFileEdit*)file;
   return data->error;
 }
 
+
 // call just after readline
-void _toml_print_error_parsing(void* file) {
+void _toml_print_error_parsing(const tomlFile file) {
   if (!file)
     return ;
   struct tomlFileEdit* data = (struct tomlFileEdit*)file;
@@ -123,52 +150,146 @@ void _toml_print_error_parsing(void* file) {
 }
 
 
-void  _toml_print_l(void* file) {
+/*
+* do not feed the \n in the array
+*   txt[] = "hello world"   : good
+*   txt[] = "hello world\n" : bad
+*/
+tomlFile _toml_make_fake_file(const char* const* txt) {
+  struct tomlFileEdit* file = calloc(1, sizeof(struct tomlFileEdit));
   if (!file)
-    return;
-  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
-  const char* l = data->rawData[LINE_OF_SET(data->line)];
-  printf("%zu:%zu [%zu]\n%s\n%s\n", strlen(l), data->cursor, data->cursor ,l, data->cursor < (size_t)data->currentLineLen ? l : ":<- end");
-  printf("____________________________\n");
+    return NULL;
+  _toml_set_name(file, ">toml/local.toml");
+  size_t i = 0;
+  while (txt[i]) { i++; }
+  file->rawData = calloc(sizeof(char*), i + 1);
+  for (size_t j = 0; j < i; j++) {
+    file->rawData[j] = strdup(txt[j]);
+    file->fileSize += strlen(file->rawData[j]);
+  }
+  file->totalLine = i;
+  return file;
 }
 
-void    _toml_info(const tomlFile file) {
-  if (!file)
-    return;
-  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
-  const int size = 1001;
-  char      str[size];
-  snprintf(str, size -1,"name: %s\n\tpath: %s\n"  \
-  "\tsize: %zu\n\ttotal line: %zu\n\terror %d\n"\
-  "line: %zu\ncursor: %zu\n", data->fileName,   \
-  data->filePath, data->fileSize, data->totalLine, data->error, data->line, data->cursor);
-  write(1, str, strlen(str));
-}
 
 //********************************/
 //            parsing            */
 //********************************/
 
-ssize_t     _toml_current_line_len(const tomlFile file) {
-  if (!file)
+
+/// @brief 
+/// @param file 
+/// @return retun -1 on bad input/line read else return number of space skip
+ssize_t _toml_skip_spaces(tomlFile file) {
+  if (!file) 
     return -1;
   struct tomlFileEdit* data = (struct tomlFileEdit*)file;
-  return data->currentLineLen;
+  if (!data->rawData || !(*data->rawData))
+    return -1;
+  if (data->line >= data->totalLine)
+    return -1;
+  size_t spaceSkip = 0;
+  while (data->cursor < (size_t)data->currentLineLen) {
+    if (strchr(VALID_SPACE, data->rawData[LINE_OF_SET(data->line)][data->cursor])) {
+      _toml_add_to_read(file, 2, 1);
+      spaceSkip++;
+      continue ;
+    }
+    break ;
+  }
+  return spaceSkip;
 }
 
-ssize_t     _toml_get_file_byte_size(tomlFile file) {
+
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+bool        _toml_file_done_reading(const tomlFile file);      //todo
+bool        _toml_file_done_reading_line(const tomlFile file); //todo
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+//!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+
+const char* _toml_read_line(tomlFile file, ssize_t* size) {
+  if (!file)
+    return NULL;
+  _toml_zero_read(file, 2);
+  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
+  if (data->line > data->totalLine)
+    return NULL;
+  const size_t skip = _toml_skip_spaces(file);
+  const size_t len = strlen(data->rawData[LINE_OF_SET(data->line)]);
+  if (data->rawData[LINE_OF_SET(data->line)][skip] == COMMENT) {
+    _toml_add_to_read(file, 1, 1);
+    return _toml_read_line(file, size);
+  }
+  if (size)
+    *size = len;
+  _toml_set_readLine_len(file, len);
+  return data->rawData[LINE_OF_SET(data->line)];
+}
+
+
+ssize_t   _toml_get_file_line_number(const tomlFile file) {
   if (!file)
     return -1;
-  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
+  const struct tomlFileEdit* data = (struct tomlFileEdit*)file;
+  return data->totalLine;
+}
+
+
+ssize_t     _toml_get_file_byte_size(const tomlFile file) {
+  if (!file)
+    return -1;
+  const struct tomlFileEdit* data = (struct tomlFileEdit*)file;
   return data->fileSize;
 }
 
-ssize_t _toml_get_file_line_number(tomlFile file) {
+
+// call after readline
+const char* _toml_current_line(const tomlFile file) {
+  if (!file)
+    return NULL;
+  const struct tomlFileEdit* data = (struct tomlFileEdit*)file;
+  if (data->line == 0 || data->line > data->totalLine)
+    return NULL;
+  return data->rawData[data->line - 1];
+}
+
+
+// call after readline
+char  _toml_current_char(const tomlFile file) {
+  if (!file)
+    return 0;
+  const struct tomlFileEdit* data = (struct tomlFileEdit*)file;
+  if (data->line >= data->totalLine || data->currentLineLen == -1 || data->cursor >= (size_t)data->currentLineLen)
+    return 0;
+  return data->rawData[data->line][data->cursor];
+}
+
+
+ssize_t     _toml_current_line_len(const tomlFile file) {
+  if (!file || _toml_current_line_index(file) == 0)
+    return -1;
+  const struct tomlFileEdit* data = (struct tomlFileEdit*)file;
+  return data->currentLineLen;
+}
+
+
+ssize_t     _toml_current_line_index(const tomlFile file) {
   if (!file)
     return -1;
   struct tomlFileEdit* data = (struct tomlFileEdit*)file;
-  return data->totalLine;
+  return data->line;
 }
+
+
+ssize_t     _toml_current_cursor_index(const tomlFile file) {
+  if (!file)
+    return -1;
+  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
+  return data->cursor;
+}
+
 
 /*
 *  -3 no line or too far,
@@ -204,44 +325,11 @@ int     _toml_is_in_quotation(const tomlFile file, ssize_t i) {
   return quotationOfI;
 }
 
-// call after readline
-const char* _toml_current_line(const tomlFile file) {
-  if (!file)
-    return NULL;
-  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
-  if (data->line >= data->totalLine)
-    return NULL;
-  return data->rawData[data->line];
-}
 
-// call after readline
-char  _toml_current_char(const tomlFile file) {
-  if (!file)
-    return 0;
-  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
-  if (data->line >= data->totalLine || data->currentLineLen == -1 || data->cursor >= (size_t)data->currentLineLen)
-    return 0;
-  return data->rawData[data->line][data->cursor];
-}
+/*********************************/
+/*              var              */
+/*********************************/
 
-const char* _toml_read_line(tomlFile file, ssize_t* size) {
-  if (!file)
-    return NULL;
-  _toml_zero_read(file, 2);
-  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
-  if (data->line >= data->totalLine)
-    return NULL;
-  const size_t skip = _toml_skip_spaces(file);
-  const size_t len = strlen(data->rawData[LINE_OF_SET(data->line)]);
-  if (data->rawData[LINE_OF_SET(data->line)][skip] == COMMENT) {
-    _toml_add_to_read(file, 1, 1);
-    return _toml_read_line(file, size);
-  }
-  if (size)
-    *size = len;
-  _toml_set_readLine_len(file, len);
-  return data->rawData[LINE_OF_SET(data->line)];
-}
 
 int _toml_get_name(tomlFile file) {
   const ssize_t space = _toml_skip_spaces(file);
@@ -257,55 +345,13 @@ int _toml_get_name(tomlFile file) {
   return 0;
 }
 
-/// @brief 
-/// @param file 
-/// @return retun -1 on bad input/line read else return number of space skip
-ssize_t _toml_skip_spaces(void* file) {
-  if (!file) 
-    return -1;
-  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
-  if (!data->rawData || !(*data->rawData))
-    return -1;
-  if (data->line >= data->totalLine)
-    return -1;
-  size_t spaceSkip = 0;
-  while (data->cursor < (size_t)data->currentLineLen) {
-    if (strchr(VALID_SPACE, data->rawData[LINE_OF_SET(data->line)][data->cursor])) {
-      _toml_add_to_read(file, 2, 1);
-      spaceSkip++;
-      continue ;
-    }
-    break ;
-  }
-  return spaceSkip;
-}
-
-/*********************************/
-/*              var              */
-/*********************************/
-
-ssize_t     _toml_current_line_index(const tomlFile file) {
-  if (!file)
-    return -1;
-  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
-  return data->line;
-}
-
-ssize_t     _toml_current_cursor_index(const tomlFile file) {
-  if (!file)
-    return -1;
-  struct tomlFileEdit* data = (struct tomlFileEdit*)file;
-  return data->cursor;
-}
-
-
 
 /*
 * 1 line
 * 2 cursor
 * 3 line & cursor
 */
-int _toml_zero_read(void* file, int mode) {
+int _toml_zero_read(tomlFile file, int mode) {
   if (!file)
     return 1;
   struct tomlFileEdit* data = file;
@@ -316,12 +362,13 @@ int _toml_zero_read(void* file, int mode) {
   return 0;
 }
 
+
 /*
 * 1 line
 * 2 cursor
 * 3 line & cursor
 */
-int _toml_add_to_read(void* file, int mode, int ammout) {
+int _toml_add_to_read(tomlFile file, int mode, int ammout) {
   if (!file)
     return 1;
   struct tomlFileEdit* data = file;
@@ -332,30 +379,14 @@ int _toml_add_to_read(void* file, int mode, int ammout) {
   return 0;
 }
 
-void     _toml_set_readLine_len(void* file ,ssize_t len) {
+
+void     _toml_set_readLine_len(tomlFile file ,ssize_t len) {
   if (!file)
     return;
   struct tomlFileEdit* data = file;
   data->currentLineLen = len;
 }
 
-
-bool  _toml_clean_known_keys(void* file) {
-  if (!file)
-    return false;
-  struct tomlFileEdit* data = file;
-  if (data->keysListSize) {
-    free(data->keysList);
-  }
-  return true;
-}
-
-t_table* _toml_make_default_table(const char* name) {
-  t_table* t = calloc(1, sizeof(*t));
-  if (t)
-    t->tableName = strdup(name);
-  return t;
-}
 
 t_table* _toml_make_tables(const char* name, t_field* fields, size_t fieldAmount) {
   t_table* t = _toml_make_default_table(name);
@@ -366,12 +397,33 @@ t_table* _toml_make_tables(const char* name, t_field* fields, size_t fieldAmount
   return t;
 }
 
+
+t_table* _toml_make_default_table(const char* name) {
+  t_table* t = calloc(1, sizeof(*t));
+  if (t)
+    t->tableName = strdup(name);
+  return t;
+}
+
+
+bool  _toml_clean_known_keys(tomlFile file) {
+  if (!file)
+    return false;
+  struct tomlFileEdit* data = file;
+  if (data->keysListSize) {
+    free(data->keysList);
+  }
+  return true;
+}
+
+
 t_field* _toml_make_default_field(const char* key) {
   t_field* f = calloc(1, sizeof(*f));
   if (f)
     f->key = strdup(key);
   return f;
 }
+
 
 t_field* _toml_make_field(const char* key, e_types type, void* value, size_t ammout) {
   t_field* f = _toml_make_default_field(key);
@@ -383,11 +435,13 @@ t_field* _toml_make_field(const char* key, e_types type, void* value, size_t amm
   return f;
 }
 
+
 //********************************/
 //              end              */
 //********************************/
 
-void _toml_free_file(void* file) {
+
+void _toml_free_file(tomlFile file) {
   struct tomlFileEdit* freeFile = (struct tomlFileEdit*)file;
   if (freeFile->rawData) {
     for (size_t i = 0; freeFile->rawData[i]; i++) {
@@ -401,3 +455,4 @@ void _toml_free_file(void* file) {
   free(freeFile);
   //todo add free of keys list
 }
+
