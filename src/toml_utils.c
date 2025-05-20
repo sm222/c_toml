@@ -162,7 +162,7 @@ tomlFile _toml_make_fake_file(const char* const* txt) {
   _toml_set_name(file, ">toml/local.toml");
   size_t i = 0;
   while (txt[i]) { i++; }
-  file->rawData = calloc(sizeof(char*), i + 1);
+  file->rawData = calloc(i + 1, sizeof(char*));
   for (size_t j = 0; j < i; j++) {
     file->rawData[j] = strdup(txt[j]);
     file->fileSize += strlen(file->rawData[j]);
