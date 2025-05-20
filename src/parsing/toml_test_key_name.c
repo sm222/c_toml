@@ -15,6 +15,9 @@ static bool _toml_test_valid_char(const char c) {
 static int _toml_test_key_name(tomlFile file, char* buff, size_t* buffIndex) {
   char c = '\0';
   do {
+    const int quotation = toml_quotation(file);
+    if (quotation < 0)
+      return -1;
     _toml_skip_spaces(file);
     c = _toml_current_char(file);
     if (c == '.')

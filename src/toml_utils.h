@@ -99,7 +99,7 @@ ssize_t     _toml_current_cursor_index(const tomlFile file);
 //
 
 int         _toml_is_in_quotation(const tomlFile file, ssize_t i);
-
+# define     toml_quotation(file)   _toml_is_in_quotation(file, _toml_current_line_index(file))
 
 //********************************/
 //              var              */
